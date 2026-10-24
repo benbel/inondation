@@ -1,5 +1,6 @@
 import io
 import sys
+import time
 import zipfile
 from pathlib import Path
 
@@ -12,15 +13,37 @@ from rasterio.transform import from_origin
 from shapely.geometry import box
 
 
-def telecharger(url, chemin):
-    if not Path(chemin).exists():
-        reponse = requests.get(url, timeout=1800)
+def telecharger(url, chemin, essais=6):
+    chemin = Path(chemin)
+    if chemin.exists() and zipfile.is_zipfile(chemin):
+        return chemin
+    partiel = chemin.with_name(chemin.name + ".part")
 
-        reponse.raise_for_status()
-
-        Path(chemin).write_bytes(reponse.content)
-
-    return chemin
+    for essai in range(1, essais + 1):
+        deja = partiel.stat().st_size if partiel.exists() else 0
+        entetes = {"Range": f"bytes={deja}-"} if deja else {}
+        try:
+            with requests.get(url, headers=entetes, stream=True, timeout=(30, 300)) as r:
+                if r.status_code != 416:
+                    r.raise_for_status()
+                    reprise = deja > 0 and r.status_code == 206
+                    with open(partiel, "ab" if reprise else "wb") as f:
+                        for bloc in r.iter_content(chunk_size=1 << 20):
+                            f.write(bloc)
+            if zipfile.is_zipfile(partiel):
+                partiel.replace(chemin)
+                return chemin
+            partiel.unlink(missing_ok=True)
+            raise IOError("archive incomplète ou corrompue")
+        except (requests.exceptions.ChunkedEncodingError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                IOError) as e:
+            if essai == essais:
+                raise
+            attente = 10 * 2 ** (essai - 1)
+            print(f"Téléchargement interrompu ({e!r}), essai {essai}/{essais}, reprise dans {attente}s")
+            time.sleep(attente)
 
 
 def lire_filosofi(annee, url, membre):
