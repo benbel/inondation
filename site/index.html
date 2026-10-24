@@ -226,7 +226,7 @@ carte.on("load", async () => {
   teinteZone.push(bleus[bleus.length - 1]);
   rangZone.push(0);
 
-  carte.setTerrain({ source: "relief", exaggeration: 3 });
+  carte.setTerrain({ source: "relief", exaggeration: 1 });
   carte.jumpTo({ center: indicateurs.centre });
   carte.setMaxBounds(elargir(bornes(communes)));
   carte.addSource("zones", { type: "vector", url: "pmtiles://" + new URL(donnees + "zones.pmtiles", location.href).href });
