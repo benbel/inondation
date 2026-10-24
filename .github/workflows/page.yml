@@ -11,7 +11,7 @@ permissions:
 jobs:
   construire:
     runs-on: ubuntu-24.04
-    timeout-minutes: 360
+    timeout-minutes: 720
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
