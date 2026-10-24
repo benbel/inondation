@@ -20,7 +20,7 @@ jobs:
       - run: sudo apt-get install -y tippecanoe
       - run: pip install -r requirements.txt
       - run: |
-          for territoire in saint_omer ales aude saint_malo calais delta_rhone roya_vesubie boucle_marne paris lyon marseille toulouse bordeaux grenoble nimes bastia; do
+          for territoire in saint_omer saint_malo calais boucle_marne; do
             python code/carte.py $territoire
             python code/population.py $territoire
             python code/dvf.py $territoire
