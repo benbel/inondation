@@ -1,0 +1,4 @@
+data/
+site/donnees/
+__pycache__/
+.venv/
